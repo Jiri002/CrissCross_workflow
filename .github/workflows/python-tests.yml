@@ -1,0 +1,53 @@
+# Název workflowu, jak se zobrazí v GitHubu
+name: Run Python Tests
+
+# Události, které spouští tento workflow
+on:
+  push:                # Spustí se při každém pushi
+    branches:
+      - main           # ...pokud je to větev main
+      - develop        # ...nebo develop
+  pull_request:        # Spustí se při každém pull requestu
+    branches:
+      - main
+      - develop
+
+# Definice úkolů (jobů)
+jobs:
+  test:
+    runs-on: ubuntu-latest   # Virtuální běhové prostředí na Ubuntu
+
+    steps:
+      # 1. Stáhne celý repozitář
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # 2. Nastaví Python 3.13 jako výchozí interpret
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.13'
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
+
+      # 3. Nainstaluje potřebné balíčky
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pytest pytest-cov
+
+      - name: Prepare coverage output folder
+        run: mkdir -p test_coverage
+
+      # 4. Spustí testy pomocí pytest
+      - name: Run tests with coverage
+        run: pytest --cov=modules --cov-report=term --cov-report=html:test_coverage --disable-warnings --maxfail=1
+
+      # 5. Uloží HTML report jako artefakt ke stažení
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: test_coverage/
+
