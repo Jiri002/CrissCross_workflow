@@ -1,4 +1,4 @@
-# Projekt: CrissCross
+# Projekt: CrissCross (nyní s GUI)
 
 ## Zadání úkolu
 
