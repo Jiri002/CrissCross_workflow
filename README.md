@@ -1,170 +1,150 @@
-# Projekt: CrissCross (nyní s GUI)
+# Křížky a kolečka (Tic-Tac-Toe/CrissCross) — Python + Tkinter (GUI)
 
-## Zadání úkolu
-
-Vaším úkolem je vytvořit hru **Piškvorky** (CrissCross) jako objektově orientovaný Python projekt. Cílem je procvičit návrh programu pomocí tříd a metod, rozdělit kód do modulů a připravit testy pro jednotlivé části systému.
+Jednoduchá desktopová hra křížky a kolečka (anglicky *Tic-Tac-Toe*) napsaná v Pythonu pomocí knihovny **Tkinter**. Hra je postavena na architektuře **MVC** (Model–View–Controller) a umožňuje hrát na hracím poli libovolné velikosti s nastavitelnou délkou výherní kombinace.
 
 ---
 
-## 🧠 Pravidla hry
+## 1. Co aplikace umí
 
-- Hraje se na čtvercové herní desce (např. 15x15, ale velikost může být nastavena).
-- Dva hráči se střídají ve vkládání znaků:
-  - jeden používá `X`, druhý `O`.
-- Hráč, který jako první vytvoří **pět svých znaků v řadě** (horizontálně, vertikálně nebo diagonálně), vyhrává.
-- Pokud je deska plná a žádný hráč nevyhrál, hra končí remízou.
+- **Volitelná velikost hracího pole** — na začátku hry si zvolíte, jak velké bude pole (např. `3` pro klasické 3×3, nebo třeba `10` pro 10×10).
+- **Nastavitelná délka výherní kombinace** — vyhrává hráč, který jako první umístí zadaný počet stejných symbolů (X nebo O) za sebou, a to **v libovolném směru**: v řádku, ve sloupci, nebo na obou typech diagonál. Tato délka se nastavuje pomocí proměnné `WIN_LENGTH` přímo v kódu.
+- **Responzivní okno** — tlačítka hracího pole se automaticky zmenšují a zvětšují podle velikosti okna, takže hrací pole se vždy vejde do viditelné oblasti (i u velmi velkých polí, kde mohou být tlačítka jen málo viditelná).
+- **Barevné odlišení hráčů** — hráč X se zobrazuje červeně, hráč O modře.
+- **Detekce výhry a remízy** — hra automaticky pozná vítěze, nebo pokud se zaplní celé pole bez vítěze, oznámí remízu.
+- **Menu s možností uložení hry** — v horní liště okna najdete jednoduché menu **„Hra"** s volbou **„Uložit hru"**, která uloží aktuální stav partie do souboru `savegame.json`.
+- **Pokračování v rozehrané partii** — při dalším spuštění programu se vás aplikace zeptá, zda chcete pokračovat v uložené hře. Pokud ano, načte se přesně ten stav (velikost pole, rozestavění, hráč na tahu), ve kterém jste hru uložili.
+- **Ošetření chybných vstupů** — pokud při zadávání velikosti pole napíšete neplatnou hodnotu (text, nulu nebo záporné číslo), aplikace vás slušně vyzve k opravě a nedojde k pádu programu.
 
 ---
 
-## 🧱 Struktura projektu
+## 2. Co budete potřebovat
+
+- **Python 3.8 nebo novější** (doporučeno 3.10+)
+- Knihovna **Tkinter** — na Windows a macOS je součástí standardní instalace Pythonu. Na **Linuxu** je potřeba ji často doinstalovat zvlášť (viz níže).
+- Žádné další externí knihovny nejsou potřeba — hra používá pouze standardní knihovnu Pythonu (`tkinter`, `json`, `os`, `typing`).
+
+### Doinstalování Tkinteru na Linuxu
+
+Pokud na Linuxu (např. Ubuntu/Debian) dostanete chybu typu `ModuleNotFoundError: No module named 'tkinter'`, doinstalujte balíček:
+
+```bash
+sudo apt update
+sudo apt install python3-tk
+```
+
+---
+
+## 3. Spuštění pomocí virtuálního prostředí (venv)
+
+Virtuální prostředí (*venv*) je izolovaný "balíček" s vlastní instalací Pythonu a knihovnami, který se nemíchá s ostatními projekty na vašem počítači. I když tato hra nepotřebuje žádné externí knihovny, je dobrým zvykem si venv vytvořit — zejména pokud budete později chtít spouštět i testy (viz kapitola 6).
+
+### Windows (PowerShell / CMD)
+
+```powershell
+# 1. Přejděte do složky s projektem
+cd cesta\ke\slozce\s\projektem
+
+# 2. Vytvořte virtuální prostředí (vytvoří se složka "venv")
+python -m venv venv
+
+# 3. Aktivujte virtuální prostředí
+venv\Scripts\activate
+
+# 4. Spusťte hru
+python extended_version_gui.py
+```
+
+> Pokud PowerShell aktivaci odmítne s chybou o spouštění skriptů, povolte to jednorázově příkazem:
+> `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+
+### macOS / Linux (bash/zsh)
+
+```bash
+# 1. Přejděte do složky s projektem
+cd cesta/ke/slozce/s/projektem
+
+# 2. Vytvořte virtuální prostředí (vytvoří se složka "venv")
+python3 -m venv venv
+
+# 3. Aktivujte virtuální prostředí
+source venv/bin/activate
+
+# 4. Spusťte hru
+python3 tic_tac_toe.py
+```
+
+### Jak poznáte, že je venv aktivní
+
+Před výzvou v terminálu se objeví název prostředí v závorce, např.:
 
 ```
-crisscross/ 
-├── main.py          # Spuštění celé hry
-├── modules/ 
-    ├── board.py     # Třída pro herní desku 
-    ├── player.py    # Třída pro hráče 
-    └── game.py      # Řízení hry (game loop, kontrola vítěze atd.) 
-├── tests/           # Testy pro jednotlivé komponenty
-    ├── test_board.py 
-    ├── test_player.py 
-    └── test_game.py 
-├── how_to.md        # Návodné informace, jak začít
-└── README.md        # Zadání projektu
+(venv) uzivatel@pocitac:~/projekt$
+```
+
+### Deaktivace prostředí
+
+Až s hrou skončíte, virtuální prostředí můžete kdykoliv deaktivovat příkazem:
+
+```bash
+deactivate
 ```
 
 ---
 
-## 💡 Co má být implementováno
+## 4. Jak hra probíhá (první spuštění)
 
-### `Board` (board.py)
-- Reprezentuje herní desku (2D pole).
-- Umožňuje:
-  - Zobrazit desku
-  - Umístit tah na desku
-  - Zkontrolovat platnost tahu
-  - Zkontrolovat vítězství
+Po spuštění `python tic_tac_toe.py` se v terminálu zobrazí dvě otázky:
 
-### `Player` (player.py)
-- Obsahuje:
-  - Symbol hráče (`X` nebo `O`)
-  - Jméno hráče
-  - Metodu pro zadání tahu (vstup z klávesnice nebo AI)
+1. **„Přejete si pokračovat v již rozehrané partii? Ano/Ne"**
+   - Napište `Ne`, pokud hrajete poprvé nebo chcete novou hru.
+   - Napište `Ano`, pokud chcete načíst dříve uloženou partii ze souboru `savegame.json`.
 
-### `Game` (game.py)
-- Obsahuje:
-  - Herní smyčku
-  - Střídání hráčů
-  - Výpis stavu hry
-  - Vyhodnocení vítěze nebo remízy
+2. *(pouze při nové hře)* **„Zadejte velikost hracího pole jedním číslem"**
+   - Zadejte kladné celé číslo, např. `5` pro hrací pole 5×5.
+
+Po zodpovězení otázek se otevře grafické okno se hrou. Klikáním na tlačítka pokládáte symboly, hráči se automaticky střídají a hra vyhodnotí výhru nebo remízu.
+
+### Uložení hry
+
+Kdykoliv během hry můžete v menu **Hra → Uložit hru** uložit aktuální rozestavění. Příště si pak při startu programu vyberete „Ano" a budete pokračovat přesně tam, kde jste skončili.
 
 ---
 
-## ✅ Požadavky na projekt
+## 5. Struktura projektu
 
-- **OOP přístup:** použijte třídy, instance, metody.
-- **Modulární struktura:** každý koncept (hráč, deska, hra) má svůj samostatný modul v `/modules`.
-- **Komentáře a docstringy:** veškeré komentáře a dokumentace jsou v češtině
-- **Testy:** použijte unittest nebo pytest pro otestování hlavních tříd a metod.
-
----
-
-## 🏅 Bonusové výzvy (volitelné)
-
-- Implementace jednoduchého AI hráče (např. náhodné tahy).
-- Přidání grafického rozhraní (např. pomocí tkinter).
-- Možnost změnit velikost desky na začátku hry.
-- Logování průběhu hry do souboru.
-
+| Soubor | Popis |
+|---|---|
+| `extended_version_gui.py` | Hlavní zdrojový kód hry (Model, View, Controller) |
+| `test_extended_version_gui.py` | Sada automatických testů (pytest) |
+| `savegame.json` | Soubor s uloženou hrou — vytvoří se automaticky při prvním uložení |
+| `README.md` | Tento návod |
 
 ---
 
-### 1. Přizpůsobení velikosti herní desky
-Umožněte hráčům nastavit velikost herní desky při spuštění hry:
-1. Přidejte parametr `size` do třídy `Board`:
-    ```python
-    class Board:
-        def __init__(self, size=15):
-            self.size = size
-            self.grid = [[" " for _ in range(size)] for _ in range(size)]
-    ```
-2. Upravte `main.py`, aby se hráč mohl rozhodnout:
-    ```python
-    size = int(input("Zadejte velikost herní desky (např. 15): "))
-    board = Board(size)
-    ```
+## 6. Spuštění testů (nepovinné)
+
+Projekt obsahuje sadu testů napsanou v **pytest**, která ověřuje, že herní logika (vyhodnocení výhry, ukládání/načítání, atd.) funguje správně.
+
+```bash
+# Ve aktivovaném venv prostředí nainstalujte pytest
+pip install pytest
+
+# Spusťte testy
+pytest test_tic_tac_toe.py -v
+```
+
+> Část testů, která otevírá skutečné grafické okno, se na počítačích bez grafického rozhraní (např. server bez monitoru) automaticky přeskočí — to je v pořádku a nejde o chybu.
 
 ---
 
-### 2. Implementace AI hráče
-Přidejte možnost hry proti jednoduché AI:
-1. Vytvořte novou třídu `AIPlayer` dědící z `Player`:
-    ```python
-    import random
+## 7. Úprava délky výherní kombinace
 
-    class AIPlayer(Player):
-        def make_move(self, board):
-            while True:
-                x = random.randint(0, board.size - 1)
-                y = random.randint(0, board.size - 1)
-                if board.is_valid_move(x, y):
-                    return x, y
-    ```
-2. V `main.py` umožněte hráči zvolit, zda chce hrát proti AI:
-    ```python
-    opponent = input("Chcete hrát proti AI? (ano/ne): ").lower()
-    if opponent == "ano":
-        player2 = AIPlayer("AI", "O")
-    ```
+Pokud chcete změnit, kolik symbolů v řadě je potřeba k výhře, otevřete soubor `tic_tac_toe.py` a upravte hodnotu proměnné na začátku souboru:
+
+```python
+WIN_LENGTH = 3  # počet stejných symbolů v řadě potřebných k výhře
+```
+
+> **Upozornění:** Hodnota `WIN_LENGTH` by nikdy neměla být větší než zvolená velikost hracího pole — jinak by výhra nebyla možná. Aplikace vás na tuto situaci při startu upozorní.
 
 ---
-
-### 3. Přidání logování hry
-Ukládejte průběh hry do souboru:
-1. Vytvořte funkci pro logování v `game.py`:
-    ```python
-    def log_move(player, x, y):
-        with open("game_log.txt", "a") as log_file:
-            log_file.write(f"{player.name} ({player.symbol}) -> [{x}, {y}]\n")
-    ```
-2. Zavolejte tuto funkci po každém tahu:
-    ```python
-    log_move(current_player, x, y)
-    ```
-
----
-
-### 4. Testování nových funkcí
-1. Otestujte přizpůsobení velikosti desky:
-    ```python
-    def test_board_size():
-        board = Board(10)
-        assert len(board.grid) == 10
-        assert len(board.grid[0]) == 10
-    ```
-2. Otestujte AI hráče:
-    ```python
-    def test_ai_move():
-        board = Board()
-        ai = AIPlayer("AI", "O")
-        x, y = ai.make_move(board)
-        assert board.is_valid_move(x, y)
-    ```
-
----
-
-### 5. Bonus: Grafické rozhraní
-Použijte knihovnu `tkinter` pro vytvoření GUI:
-1. Vytvořte nové okno s herní deskou.
-2. Přidejte tlačítka pro každý tah.
-3. Zobrazte vítěze nebo remízu v dialogovém okně.
-
----
-
-
-
-
-
-
-
-
